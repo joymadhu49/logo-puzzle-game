@@ -1,91 +1,67 @@
-const board = document.getElementById("puzzle-board");
-const logoImg = document.getElementById("logo");
-const moveCounter = document.getElementById("move-counter"); // NEW
-let moves = 0; // NEW
+const board = document.getElementById('puzzle-board');
+const size = 3; // 3x3 grid
+let pieces = []; // Array to store pieces
+let emptyPos = { row: 2, col: 2 }; // Start with bottom-right empty
 
-const rows = 3, cols = 3;
-const pieces = [];
-
-logoImg.onload = () => {
-  buildPuzzle();
-  shufflePieces();
-  updateMoves(0); // Initialize counter
-};
-
-function buildPuzzle() {
-  const w = logoImg.naturalWidth;
-  const h = logoImg.naturalHeight;
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const piece = document.createElement("div");
-      piece.className = "puzzle-piece";
-      piece.style.backgroundImage = `url('${logoImg.src}')`;
-      piece.style.backgroundPosition = `-${c * (w/cols)}px -${r * (h/rows)}px`;
-      piece.style.backgroundSize = `${w}px ${h}px`;
-      piece.dataset.correct = `${r}-${c}`;
-      board.appendChild(piece);
-      pieces.push(piece);
+// Initialize pieces
+function initPuzzle() {
+    pieces = [];
+    for (let row = 0; row < size; row++) {
+        for (let col = 0; col < size; col++) {
+            if (row === size-1 && col === size-1) continue; // empty space
+            const piece = document.createElement('div');
+            piece.classList.add('piece');
+            piece.style.backgroundImage = "url('assets/zama_logo.png')";
+            piece.style.backgroundPosition = `-${col*100}px -${row*100}px`;
+            piece.dataset.row = row;
+            piece.dataset.col = col;
+            board.appendChild(piece);
+            pieces.push(piece);
+        }
     }
-  }
-
-  pieces.forEach(p => p.addEventListener("pointerdown", onPick));
 }
 
-let picked = null;
+// Swap piece with empty space
+function movePiece(direction) {
+    let targetRow = emptyPos.row;
+    let targetCol = emptyPos.col;
 
-function onPick() {
-  if (picked === this) {
-    picked.classList.remove("highlight");
-    picked = null;
-    return;
-  }
-  if (!picked) {
-    picked = this;
-    picked.classList.add("highlight");
-  } else {
-    swapPieces(picked, this);
-    picked.classList.remove("highlight");
-    picked = null;
-    moves++;                     // INCREMENT move count
-    updateMoves(moves);          // UPDATE the UI
-    checkWin();
-  }
+    if(direction === 'up') targetRow += 1;
+    if(direction === 'down') targetRow -= 1;
+    if(direction === 'left') targetCol += 1;
+    if(direction === 'right') targetCol -= 1;
+
+    const piece = pieces.find(p => parseInt(p.dataset.row) === targetRow && parseInt(p.dataset.col) === targetCol);
+    if(piece){
+        // Swap positions
+        piece.dataset.row = emptyPos.row;
+        piece.dataset.col = emptyPos.col;
+        piece.style.backgroundPosition = `-${piece.dataset.col*100}px -${piece.dataset.row*100}px`;
+        emptyPos.row = targetRow;
+        emptyPos.col = targetCol;
+
+        checkCompletion();
+    }
 }
 
-function swapPieces(a, b) {
-  const tmpBg = a.style.backgroundPosition;
-  a.style.backgroundPosition = b.style.backgroundPosition;
-  b.style.backgroundPosition = tmpBg;
-
-  const tmpCorrect = a.dataset.correct;
-  a.dataset.correct = b.dataset.correct;
-  b.dataset.correct = tmpCorrect;
+// Check if puzzle solved
+function checkCompletion(){
+    let solved = pieces.every(p => {
+        return parseInt(p.dataset.row) === parseInt(p.dataset.row) &&
+               parseInt(p.dataset.col) === parseInt(p.dataset.col);
+    });
+    if(solved){
+        alert("Congratulations! You solved the puzzle!");
+    }
 }
 
-function shufflePieces() {
-  for (let i = pieces.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    swapPieces(pieces[i], pieces[j]);
-  }
-  moves = 0;
-  updateMoves(moves);
+// Button controls
+document.getElementById('up').addEventListener('click', ()=>movePiece('up'));
+document.getElementById('down').addEventListener('click', ()=>movePiece('down'));
+document.getElementById('left').addEventListener('click', ()=>movePiece('left'));
+document.getElementById('right').addEventListener('click', ()=>movePiece('right'));
+
+initPuzzle();
 }
 
-function checkWin() {
-  let ok = true;
-  pieces.forEach(p => {
-    const [r, c] = p.dataset.correct.split("-");
-    const expected = `-${c * (logoImg.naturalWidth / cols)}px -${r * (logoImg.naturalHeight / rows)}px`;
-    if (p.style.backgroundPosition !== expected) ok = false;
-  });
-  if (ok) {
-    setTimeout(() => alert(`🎉 Puzzle solved in ${moves} moves!`), 200);
-  }
-}
-
-// NEW: updateMoves helper
-function updateMoves(count) {
-  moveCounter.textContent = `Moves: ${count}`;
-}
 
