@@ -14,17 +14,25 @@ function initPuzzle() {
             piece.classList.add('piece');
             piece.dataset.row = row;
             piece.dataset.col = col;
-
-            // Correct background position
             piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
-
             board.appendChild(piece);
             pieces.push(piece);
         }
     }
+
+    shufflePuzzle(); // 👈 randomize right after creation
 }
 
-function movePiece(direction) {
+// Randomize puzzle by making valid moves
+function shufflePuzzle(moves = 100) {
+    const directions = ['up', 'down', 'left', 'right'];
+    for (let i = 0; i < moves; i++) {
+        const dir = directions[Math.floor(Math.random() * directions.length)];
+        movePiece(dir, false);
+    }
+}
+
+function movePiece(direction, checkWin = true) {
     let targetRow = emptyPos.row;
     let targetCol = emptyPos.col;
 
@@ -35,7 +43,6 @@ function movePiece(direction) {
 
     const piece = pieces.find(p => parseInt(p.dataset.row) === targetRow && parseInt(p.dataset.col) === targetCol);
     if (piece) {
-        // Swap positions
         const oldRow = piece.dataset.row;
         const oldCol = piece.dataset.col;
 
@@ -46,7 +53,7 @@ function movePiece(direction) {
         emptyPos.row = parseInt(oldRow);
         emptyPos.col = parseInt(oldCol);
 
-        checkCompletion();
+        if (checkWin) checkCompletion();
     }
 }
 
@@ -59,7 +66,7 @@ function checkCompletion() {
         return row === expectedRow && col === expectedCol;
     });
 
-    if (solved) alert("Congratulations! You solved the puzzle!");
+    if (solved) alert("🎉 Congratulations! You solved the puzzle!");
 }
 
 // Buttons
