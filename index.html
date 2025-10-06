@@ -1,5 +1,34 @@
-<header>
-  <img src="assets/zama_logo.png" alt="Zama Logo" id="logo" />
-  <h1>Assemble the Logo!</h1>
-  <p id="move-counter">Moves: 0</p>  <!-- NEW -->
-</header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sliding Logo Puzzle</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game-container">
+    <header>
+        <img src="assets/zama_logo.png" alt="Zama Logo" id="logo">
+        <h1>Sliding Logo Puzzle</h1>
+    </header>
+
+    <section id="puzzle-area">
+        <div id="puzzle-board"></div>
+    </section>
+
+    <section id="controls">
+        <button id="up">Up</button>
+        <button id="down">Down</button>
+        <button id="left">Left</button>
+        <button id="right">Right</button>
+    </section>
+
+    <footer>
+        <p>Built by <a href="https://x.com/zx_joy_" target="_blank">https://x.com/zx_joy_</a></p>
+    </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
