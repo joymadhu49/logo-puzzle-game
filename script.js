@@ -14,7 +14,10 @@ function initPuzzle() {
             piece.classList.add('piece');
             piece.dataset.row = row;
             piece.dataset.col = col;
+
+            // Correct background position
             piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+
             board.appendChild(piece);
             pieces.push(piece);
         }
@@ -48,11 +51,11 @@ function movePiece(direction) {
 }
 
 function checkCompletion() {
-    let solved = pieces.every(p => {
+    let solved = pieces.every((p, i) => {
         const row = parseInt(p.dataset.row);
         const col = parseInt(p.dataset.col);
-        const expectedRow = Math.floor(pieces.indexOf(p) / size);
-        const expectedCol = pieces.indexOf(p) % size;
+        const expectedRow = Math.floor(i / size);
+        const expectedCol = i % size;
         return row === expectedRow && col === expectedCol;
     });
 
