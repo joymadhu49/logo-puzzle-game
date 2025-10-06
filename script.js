@@ -29,12 +29,15 @@ function createPuzzlePieces() {
             // Set up the draggable feature
             piece.setAttribute('draggable', true);
             piece.setAttribute('data-id', `${row}-${col}`);
-            
-            // Add event listeners for dragging
+
+            // Add event listeners for dragging (touch events included)
             piece.addEventListener('dragstart', handleDragStart);
             piece.addEventListener('dragover', handleDragOver);
             piece.addEventListener('drop', handleDrop);
-            
+            piece.addEventListener('touchstart', handleTouchStart);
+            piece.addEventListener('touchmove', handleTouchMove);
+            piece.addEventListener('touchend', handleTouchEnd);
+
             puzzleBoard.appendChild(piece);
             puzzlePieces.push(piece);
         }
@@ -73,6 +76,33 @@ function handleDrop(e) {
         // Check if the puzzle is solved
         checkPuzzleCompletion();
     }
+}
+
+// Handle touchstart (start of touch event)
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    this.style.position = 'absolute';
+    this.style.zIndex = 1000;
+
+    this.startX = touch.pageX - this.offsetLeft;
+    this.startY = touch.pageY - this.offsetTop;
+}
+
+// Handle touchmove (move event during touch)
+function handleTouchMove(e) {
+    const touch = e.touches[0];
+    this.style.left = `${touch.pageX - this.startX}px`;
+    this.style.top = `${touch.pageY - this.startY}px`;
+}
+
+// Handle touchend (end of touch event)
+function handleTouchEnd(e) {
+    const touch = e.changedTouches[0];
+    this.style.left = `${touch.pageX - this.startX}px`;
+    this.style.top = `${touch.pageY - this.startY}px`;
+
+    // Swap with the target position if valid (same as drag-and-drop logic)
+    handleDrop(e);
 }
 
 // Check if the puzzle is correctly assembled
