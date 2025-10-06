@@ -1,130 +1,91 @@
-// Get the game container and puzzle board elements
-const puzzleBoard = document.getElementById('puzzle-board');
-const puzzleImage = document.getElementById('logo'); // Zama logo
+const board = document.getElementById("puzzle-board");
+const logoImg = document.getElementById("logo");
+const moveCounter = document.getElementById("move-counter"); // NEW
+let moves = 0; // NEW
 
-// Define the number of rows and columns for the puzzle (3x3 grid)
-const rows = 3;
-const cols = 3;
-const puzzlePieces = [];
-let completedPieces = 0;
+const rows = 3, cols = 3;
+const pieces = [];
 
-// Create the puzzle pieces
-function createPuzzlePieces() {
-    const imageWidth = puzzleImage.width;
-    const imageHeight = puzzleImage.height;
-    const pieceWidth = imageWidth / cols;
-    const pieceHeight = imageHeight / rows;
+logoImg.onload = () => {
+  buildPuzzle();
+  shufflePieces();
+  updateMoves(0); // Initialize counter
+};
 
-    // Split the image into pieces and create draggable pieces
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            const piece = document.createElement('div');
-            piece.classList.add('puzzle-piece');
+function buildPuzzle() {
+  const w = logoImg.naturalWidth;
+  const h = logoImg.naturalHeight;
 
-            // Set the background position for each piece (cut from the original image)
-            piece.style.backgroundImage = `url('${puzzleImage.src}')`;
-            piece.style.backgroundPosition = `-${col * pieceWidth}px -${row * pieceHeight}px`;
-            piece.style.backgroundSize = `${imageWidth}px ${imageHeight}px`;
-
-            // Set up the draggable feature
-            piece.setAttribute('draggable', true);
-            piece.setAttribute('data-id', `${row}-${col}`);
-
-            // Add event listeners for dragging (touch events included)
-            piece.addEventListener('dragstart', handleDragStart);
-            piece.addEventListener('dragover', handleDragOver);
-            piece.addEventListener('drop', handleDrop);
-            piece.addEventListener('touchstart', handleTouchStart);
-            piece.addEventListener('touchmove', handleTouchMove);
-            piece.addEventListener('touchend', handleTouchEnd);
-
-            puzzleBoard.appendChild(piece);
-            puzzlePieces.push(piece);
-        }
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const piece = document.createElement("div");
+      piece.className = "puzzle-piece";
+      piece.style.backgroundImage = `url('${logoImg.src}')`;
+      piece.style.backgroundPosition = `-${c * (w/cols)}px -${r * (h/rows)}px`;
+      piece.style.backgroundSize = `${w}px ${h}px`;
+      piece.dataset.correct = `${r}-${c}`;
+      board.appendChild(piece);
+      pieces.push(piece);
     }
+  }
+
+  pieces.forEach(p => p.addEventListener("pointerdown", onPick));
 }
 
-// Handle dragstart event (set the data to be transferred)
-function handleDragStart(e) {
-    e.dataTransfer.setData('text/plain', e.target.getAttribute('data-id'));
+let picked = null;
+
+function onPick() {
+  if (picked === this) {
+    picked.classList.remove("highlight");
+    picked = null;
+    return;
+  }
+  if (!picked) {
+    picked = this;
+    picked.classList.add("highlight");
+  } else {
+    swapPieces(picked, this);
+    picked.classList.remove("highlight");
+    picked = null;
+    moves++;                     // INCREMENT move count
+    updateMoves(moves);          // UPDATE the UI
+    checkWin();
+  }
 }
 
-// Handle dragover event (allow the drop)
-function handleDragOver(e) {
-    e.preventDefault();  // Necessary to allow dropping
+function swapPieces(a, b) {
+  const tmpBg = a.style.backgroundPosition;
+  a.style.backgroundPosition = b.style.backgroundPosition;
+  b.style.backgroundPosition = tmpBg;
+
+  const tmpCorrect = a.dataset.correct;
+  a.dataset.correct = b.dataset.correct;
+  b.dataset.correct = tmpCorrect;
 }
 
-// Handle drop event (place the dragged piece in the right position)
-function handleDrop(e) {
-    e.preventDefault();
-    const droppedPieceId = e.dataTransfer.getData('text/plain');
-    const targetPiece = e.target;
-
-    if (targetPiece && targetPiece.classList.contains('puzzle-piece')) {
-        const draggedPiece = document.querySelector(`[data-id="${droppedPieceId}"]`);
-
-        // Swap the positions of the pieces
-        const targetPieceId = targetPiece.getAttribute('data-id');
-        targetPiece.setAttribute('data-id', droppedPieceId);
-        draggedPiece.setAttribute('data-id', targetPieceId);
-
-        // Move the pieces in the grid
-        const tempStyle = targetPiece.style.backgroundPosition;
-        targetPiece.style.backgroundPosition = draggedPiece.style.backgroundPosition;
-        draggedPiece.style.backgroundPosition = tempStyle;
-
-        // Check if the puzzle is solved
-        checkPuzzleCompletion();
-    }
+function shufflePieces() {
+  for (let i = pieces.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    swapPieces(pieces[i], pieces[j]);
+  }
+  moves = 0;
+  updateMoves(moves);
 }
 
-// Handle touchstart (start of touch event)
-function handleTouchStart(e) {
-    const touch = e.touches[0];
-    this.style.position = 'absolute';
-    this.style.zIndex = 1000;
-
-    this.startX = touch.pageX - this.offsetLeft;
-    this.startY = touch.pageY - this.offsetTop;
+function checkWin() {
+  let ok = true;
+  pieces.forEach(p => {
+    const [r, c] = p.dataset.correct.split("-");
+    const expected = `-${c * (logoImg.naturalWidth / cols)}px -${r * (logoImg.naturalHeight / rows)}px`;
+    if (p.style.backgroundPosition !== expected) ok = false;
+  });
+  if (ok) {
+    setTimeout(() => alert(`🎉 Puzzle solved in ${moves} moves!`), 200);
+  }
 }
 
-// Handle touchmove (move event during touch)
-function handleTouchMove(e) {
-    const touch = e.touches[0];
-    this.style.left = `${touch.pageX - this.startX}px`;
-    this.style.top = `${touch.pageY - this.startY}px`;
+// NEW: updateMoves helper
+function updateMoves(count) {
+  moveCounter.textContent = `Moves: ${count}`;
 }
 
-// Handle touchend (end of touch event)
-function handleTouchEnd(e) {
-    const touch = e.changedTouches[0];
-    this.style.left = `${touch.pageX - this.startX}px`;
-    this.style.top = `${touch.pageY - this.startY}px`;
-
-    // Swap with the target position if valid (same as drag-and-drop logic)
-    handleDrop(e);
-}
-
-// Check if the puzzle is correctly assembled
-function checkPuzzleCompletion() {
-    completedPieces = 0;
-
-    puzzlePieces.forEach(piece => {
-        const correctId = piece.getAttribute('data-id');
-        const pieceRow = parseInt(correctId.split('-')[0]);
-        const pieceCol = parseInt(correctId.split('-')[1]);
-        const expectedPosition = `-${pieceCol * (puzzleImage.width / cols)}px -${pieceRow * (puzzleImage.height / rows)}px`;
-
-        if (piece.style.backgroundPosition === expectedPosition) {
-            completedPieces++;
-        }
-    });
-
-    // If all pieces are correctly placed, the puzzle is solved
-    if (completedPieces === puzzlePieces.length) {
-        alert('Congratulations! You solved the puzzle!');
-    }
-}
-
-// Initialize the puzzle game
-createPuzzlePieces();
