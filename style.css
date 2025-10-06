@@ -1,18 +1,19 @@
-/* Basic reset */
+/* Reset styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Body and basic layout */
 body {
     font-family: Arial, sans-serif;
     background-color: #f5f5f5;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     flex-direction: column;
+    height: 100vh;
 }
 
 #game-container {
@@ -21,12 +22,12 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    width: 80%;
+    width: 100%;
     max-width: 600px;
 }
 
 header img {
-    width: 150px;
+    width: 120px;
     margin-bottom: 20px;
 }
 
@@ -38,6 +39,9 @@ header h1 {
 
 #puzzle-area {
     margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 #puzzle-board {
@@ -45,8 +49,8 @@ header h1 {
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 10px;
     max-width: 450px;
+    width: 100%;
     margin: 0 auto;
-    margin-top: 30px;
 }
 
 .puzzle-piece {
@@ -56,6 +60,15 @@ header h1 {
     border: 1px solid #ccc;
     cursor: pointer;
     border-radius: 5px;
+    touch-action: none; /* Disable default touch behavior */
+}
+
+/* Responsive styling for small screens */
+@media screen and (max-width: 600px) {
+    .puzzle-piece {
+        width: 100px;
+        height: 100px;
+    }
 }
 
 footer {
